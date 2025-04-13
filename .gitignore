@@ -1,0 +1,3 @@
+# Ignore Kafka data directories
+kafka2-data/
+kafka3-data/
