@@ -7,7 +7,7 @@ This script creates a topic in Kafka for testing the Django application.
 from confluent_kafka.admin import AdminClient, NewTopic
 import sys
 
-def create_topic(bootstrap_servers='localhost:9094', topic_name='test-topic', num_partitions=1, replication_factor=1):
+def create_topic(bootstrap_servers='192.168.117.128:9094', topic_name='test-topic', num_partitions=1, replication_factor=1):
     """
     Create a Kafka topic.
     

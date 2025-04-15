@@ -19,7 +19,7 @@ class KafkaProducerSSL:
     A Kafka producer that supports SSL encryption for secure communication.
     """
 
-    def __init__(self, bootstrap_servers: str = 'localhost:9093'):
+    def __init__(self, bootstrap_servers: str = '192.168.117.128:9093'):
         """
         Initialize the Kafka producer with SSL configuration.
 
