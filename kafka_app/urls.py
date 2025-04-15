@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import send_kafka_message
+from . import views
+
 urlpatterns = [
-    path('send-kafka/', send_kafka_message, name='send_kafka_message'),
+    path('', views.home, name='home'),
+    path('send-kafka-message/', views.send_kafka_message, name='send_kafka_message'),
+    path('send-kafka-ssl-message/', views.send_kafka_ssl_message, name='send_kafka_ssl_message'),
 ]

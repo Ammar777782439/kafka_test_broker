@@ -1,80 +1,121 @@
-# مشروع Django مع تكامل Kafka
+# مشروع Django مع تكامل Kafka SSL
 
-هذا المشروع هو تطبيق ويب Django يتكامل مع Apache Kafka لإدارة الرسائل غير المتزامنة. يتم استخدام Docker و Docker Compose لتسهيل عملية الإعداد والتشغيل.
+هذا المشروع هو تطبيق ويب Django يتكامل مع Apache Kafka باستخدام SSL للاتصال الآمن. يتم استخدام Docker و Docker Compose لتسهيل عملية الإعداد والتشغيل.
 
 ## المتطلبات الأساسية
 
+*   [Python 3.8+](https://www.python.org/downloads/)
 *   [Docker](https://docs.docker.com/get-docker/)
 *   [Docker Compose](https://docs.docker.com/compose/install/)
+*   [OpenSSL](https://www.openssl.org/)
+*   [Java/JDK](https://www.oracle.com/java/technologies/javase-downloads.html) (مطلوب لأدوات keytool)
 
 ## الإعداد والتشغيل
 
-1.  **استنساخ المستودع (إذا لم يكن موجودًا بالفعل):**
-    ```bash
-    git clone <repository-url>
-    cd kafka_project
-    ```
+### 1. تثبيت المتطلبات
 
-2.  **بناء وتشغيل الحاويات باستخدام Docker Compose:**
-    ```bash
-    docker-compose up --build -d
-    ```
-    سيقوم هذا الأمر ببناء الصور وتشغيل الخدمات المحددة في ملف `docker-compose.yml` (مثل تطبيق Django، Kafka، Zookeeper، وأي خدمات أخرى).
+قم بتثبيت المتطلبات باستخدام pip:
 
-3.  **تطبيق تهجيرات قاعدة البيانات (Django Migrations):**
-    قد تحتاج إلى تشغيل أوامر Django داخل حاوية الويب. أولاً، ابحث عن معرف حاوية خدمة الويب:
-    ```bash
-    docker-compose ps
-    ```
-    ثم قم بتشغيل التهجيرات:
-    ```bash
-    docker-compose exec <web_service_container_id_or_name> python manage.py migrate
-    ```
-    (استبدل `<web_service_container_id_or_name>` بالاسم أو المعرف الفعلي لحاوية خدمة الويب، غالبًا ما يكون شيئًا مثل `kafka_project_web_1`).
-
-4.  **الوصول إلى التطبيق:**
-    بمجرد تشغيل الحاويات وتطبيق التهجيرات، يجب أن يكون تطبيق Django متاحًا على `http://localhost:8000` (أو المنفذ المحدد في `docker-compose.yml`).
-
-## إيقاف التطبيق
-
-لإيقاف الحاويات:
 ```bash
-docker-compose down
+pip install -r requirements.txt
 ```
+
+### 2. إنشاء موضوع (Topic) في كافكا
+
+بعد تشغيل كافكا باستخدام Docker Compose، قم بإنشاء موضوع للاختبار:
+
+```bash
+python create_kafka_topic.py test-topic
+```
+
+سيقوم هذا البرنامج النصي بإنشاء موضوع `test-topic` في كافكا.
+
+### 3. تشغيل Kafka باستخدام Docker Compose
+
+قم بتشغيل Kafka باستخدام Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+### 4. تشغيل تطبيق Django
+
+قم بتطبيق ترحيلات قاعدة البيانات:
+
+```bash
+python manage.py migrate
+```
+
+ثم قم بتشغيل خادم التطوير:
+
+```bash
+python manage.py runserver
+```
+
+يمكنك الآن الوصول إلى التطبيق على `http://localhost:8000`.
+
+## استخدام التطبيق
+
+1. انتقل إلى الصفحة الرئيسية على `http://localhost:8000`
+2. انقر على "فتح نموذج SSL" لفتح نموذج إرسال الرسائل باستخدام SSL
+3. أدخل الموضوع (Topic) والرسالة التي تريد إرسالها
+4. انقر على "إرسال الرسالة" لإرسال الرسالة إلى Kafka
 
 ## هيكل المشروع
 
 ```
 .
 ├── docker-compose.yml        # تعريف خدمات Docker Compose
+├── create_kafka_topic.py     # برنامج نصي لإنشاء موضوع في كافكا
 ├── manage.py                 # أداة إدارة Django
 ├── README.md                 # هذا الملف
-├── grafana-provisioning/     # إعدادات Grafana (إذا كانت مستخدمة)
+├── requirements.txt          # متطلبات Python
 ├── kafka_app/                # تطبيق Django الرئيسي
 │   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
-│   ├── kafka_producer.py     # منطق منتج Kafka
+│   ├── kafka_producer.py     # منطق منتج Kafka مع دعم SSL
 │   ├── models.py             # نماذج Django
+│   ├── templates/            # قوالب HTML
+│   │   └── kafka_app/
+│   │       ├── home.html
+│   │       └── send_ssl_message.html
 │   ├── tests.py
 │   ├── urls.py               # روابط URL الخاصة بالتطبيق
 │   ├── views.py              # عروض Django
-│   └── migrations/           # تهجيرات قاعدة البيانات
+│   └── migrations/           # ترحيلات قاعدة البيانات
 ├── kafka_project/            # إعدادات مشروع Django
 │   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py           # إعدادات المشروع
 │   ├── urls.py               # روابط URL الرئيسية للمشروع
 │   └── wsgi.py
-├── kafka2-data/              # بيانات Kafka (يتم إنشاؤها بواسطة Docker)
-├── kafka3-data/              # بيانات Kafka (يتم إنشاؤها بواسطة Docker)
 └── db.sqlite3                # قاعدة بيانات SQLite (للتطوير المحلي)
 ```
 
 ## التقنيات المستخدمة
 
 *   **Backend:** Django (Python)
-*   **Messaging:** Apache Kafka
+*   **Messaging:** Apache Kafka with SSL
+*   **Kafka Client:** confluent-kafka-python
 *   **Containerization:** Docker, Docker Compose
+*   **Security:** SSL/TLS for Kafka communication
 *   **Database:** SQLite (افتراضي للتطوير، يمكن تغييره في `settings.py`)
-*   **(اختياري) Monitoring:** Grafana, Prometheus (إذا تم تكوينهما)
+
+## استكشاف الأخطاء وإصلاحها
+
+### مشاكل الاتصال بـ SSL
+
+إذا واجهت مشاكل في الاتصال بـ Kafka باستخدام SSL، تأكد من:
+
+1. تم تشغيل حاوية Kafka بشكل صحيح باستخدام Docker Compose
+2. منفذ SSL (9093) متاح ويمكن الوصول إليه
+3. تم تعطيل التحقق من الشهادة في `kafka_producer.py` باستخدام `ssl.endpoint.identification.algorithm: 'none'`
+
+### مشاكل الاتصال بـ Kafka
+
+إذا لم يتمكن التطبيق من الاتصال بـ Kafka، تأكد من:
+
+1. Kafka يعمل ويمكن الوصول إليه على المنفذ المحدد
+2. إعدادات الاتصال في `kafka_producer.py` صحيحة
+3. تم تكوين موضوعات Kafka بشكل صحيح
